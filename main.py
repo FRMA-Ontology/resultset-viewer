@@ -4,7 +4,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from anytree import Node, RenderTree, PreOrderIter
 from PIL import ImageTk, Image
 
-path = "data/lfw"
+path = "lib/lfw/"
 
 def generateTree(blazegraphURL, tree):
    sparql = SPARQLWrapper(blazegraphURL)
