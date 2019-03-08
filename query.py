@@ -245,7 +245,7 @@ NasalOcclusionQuery = """
 
 
 querymapper = {
-"thing" : "",
+"https://w3id.org/lio/v1#Image" : "",
 frma + "MugShotPhoto": mugshotQuery,
 frma + "Occlusion": occlusionQuery,
 frma + "CervicalOcclusion" : cervicalOcclusionQuery,
