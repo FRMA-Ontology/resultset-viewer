@@ -129,6 +129,24 @@ baseQuery = """
           ?Person fibo-fnd-aap-a:hasName ?Name .
 """
 
+baseCountQuery = """
+    prefix mlmo: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/>
+    prefix fibo-fnd-arr-arr: <http://www.omg.org/spec/EDMC-FIBO/FND/Arrangements/Arrangements/>
+    prefix lio: <http://purl.org/net/lio#>
+    prefix lcc-lr: <http://www.omg.org/spec/LCC/Languages/LanguageRepresentation/>
+    prefix fibo-fnd-aap-a: <http://www.omg.org/spec/EDMC-FIBO/FND/AgentsAndPeople/Agents/>
+    prefix img: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/ImageOntology/>
+    prefix frma: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/FRMA/>
+
+    select (count(distinct ?Image) as ?count)
+        where {
+          ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+          ?Result lcc-lr:hasTag ?classification .
+          ?Result mlmo:hasFeature ?Image .
+          ?Image lio:depicts ?Person .
+          ?Person fibo-fnd-aap-a:hasName ?Name .
+"""
+
 mugshotQuery = """
     ?Image a img:PosedImage.
 

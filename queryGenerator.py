@@ -9,12 +9,19 @@ nodes = {"https://w3id.org/lio/v1#Image" : rootNode}
 def getModifer(modiferIRI):
     return query.querymapper[modiferIRI]
 
-def generateQuery(limit, resultset, modiferIRIs):
+def generateCountQuery(resultset, modiferIRIs):
+    buildableQuery = query.baseCountQuery
+    for modiferIRI in modiferIRIs:
+        buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+
+    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)}"
+
+def generateQuery(limit, offset, resultset, modiferIRIs):
     buildableQuery = query.baseQuery
     for modiferIRI in modiferIRIs:
         buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
 
-    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)} limit " + str(limit)
+    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)} ORDER BY ?name limit " + str(limit) + " offset " + str(offset)
 
 def generateTree(blazegraphURL, tree):
    sparql = SPARQLWrapper(blazegraphURL)
