@@ -2,3 +2,5 @@ lib/lfw
 lib/blazegraph/blazegraph.jar
 env
 .DS_Store
+get-pip.py
+*.jpg

@@ -4,7 +4,8 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from anytree import Node, RenderTree, PreOrderIter
 from PIL import ImageTk, Image
 
-path = "data/lfw"
+path = "lib/lfw-deepfunneled/"
+queryState = "All"
 
 def generateTree(blazegraphURL, tree):
    sparql = SPARQLWrapper(blazegraphURL)
@@ -205,6 +206,7 @@ root = Tk()
 
 f1 = Frame(root)
 f2 = Frame(root)
+optionButtonFrame = Frame(f1)
 
 f1.grid(column=0, row=0, sticky="ns")
 f2.grid(column=1, row=0, sticky="n")
@@ -220,6 +222,28 @@ filemenu.add_command(label="Exit", command=root.quit)
 menubar.add_cascade(label="File", menu=filemenu)
 root.config(menu=menubar)
 
+def allCommand():
+   global queryState
+   queryState = "All"
+   print("State was set to all")
+   
+def correctCommand():
+   global queryState
+   queryState = "Correct"
+   print("State was set to correct")
+
+def incorrectCommand():
+   global queryState
+   queryState = "Incorrect"
+   print("State was set to incorrect")
+
+allButton = Button(optionButtonFrame, text = "All", command = allCommand)
+correctButton = Button(optionButtonFrame, text = "Correct", command = correctCommand)
+incorrectButton = Button(optionButtonFrame, text = "Incorrect", command = incorrectCommand)
+optionButtonFrame.pack()
+allButton.pack(side = "left")
+correctButton.pack(side = "left")
+incorrectButton.pack(side = "left")
 
 tree = ttk.Treeview(f1)
 generateTree("http://localhost:9999/blazegraph/namespace/kb/sparql", tree)
@@ -237,3 +261,4 @@ w2 = Label(f2, compound = CENTER, image = img, bg = "red")
 w2.pack(side="right")
 
 root.mainloop()
+root.destroy()
