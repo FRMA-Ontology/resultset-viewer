@@ -10,7 +10,7 @@ def getModifer(modiferIRI):
     return query.querymapper[modiferIRI]
 
 def generateCountQuery(resultset, modiferIRIs, queryState):
-    buildableQuery = query.baseCountQuery
+    buildableQuery = query.prefix + "\n" + query.baseCountQuery
     for modiferIRI in modiferIRIs:
         buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
 
@@ -35,7 +35,20 @@ def generateQuery(limit, offset, resultset, modiferIRIs, queryState):
 
     return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)} ORDER BY ?name limit " + str(limit) + " offset " + str(offset)
 
-def generateTree(blazegraphURL, tree):
+def generateAccuracyQuery(resultset, modiferIRIs):
+    buildableQuery = ""
+    for modiferIRI in modiferIRIs:
+        try:
+            buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+        except KeyError:
+            print("Error: " + modiferIRI + " not found!!")
+            return "Error"
+    buildableQuery = buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)"
+    fullquery = query.prefix + query.baseAccQuery + "{\n" + query.baseCountQuery + "\n" + buildableQuery + "}}\n{" + query.baseNumCorrectQuery + "\n" + buildableQuery + "}}\n}"
+
+    return fullquery
+
+def generateTree(blazegraphURL, resultset, tree):
    sparql = SPARQLWrapper(blazegraphURL)
    sparql.setQuery(query.treeClassQuery)
 
@@ -64,13 +77,34 @@ def generateTree(blazegraphURL, tree):
            node.parent = rootNode
 
    # print tree to console
-   for pre, fill, node in RenderTree(rootNode):
-       print("%s%s" % (pre, vars(node).get("label")))
+   # for pre, fill, node in RenderTree(rootNode):
+   #     print("%s%s" % (pre, vars(node).get("label")))
 
    for node in PreOrderIter(rootNode):
-       if node.is_root:
-           tree.insert('', 'end', node.name, text = vars(node).get("label"))
+       label = vars(node).get("label")
+       q = generateAccuracyQuery(resultset, [node.name])
+       if(q == "Error"):
+           label = label + "(" + q + ")"
        else:
-           tree.insert(node.parent.name, 'end', node.name, text = vars(node).get("label"))
+           sparql = SPARQLWrapper(blazegraphURL)
+           sparql.setQuery(q)
+
+           sparql.setReturnFormat(JSON)
+           results = sparql.query().convert()
+
+           for result in results["results"]["bindings"]:
+               total = float(result["count"]["value"])
+               correctCount = float(result["numCorrect"]["value"])
+
+           if(total == 0):
+               accuracy = "N/A"
+           else:
+               accuracy = str("%.2f" % ((correctCount/total) * 100))+ "%"
+           label = label + "(" + accuracy + ")"
+
+       if node.is_root:
+           tree.insert('', 'end', node.name, text = label)
+       else:
+           tree.insert(node.parent.name, 'end', node.name, text = label)
 
    return 0

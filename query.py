@@ -1,4 +1,5 @@
 frma = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/FRMA/"
+lio = "https://w3id.org/lio/v1#"
 
 
 # treeClassQuery = """
@@ -27,6 +28,7 @@ prefix lcc-lr: <http://www.omg.org/spec/LCC/Languages/LanguageRepresentation/>
 prefix fibo-fnd-aap-a: <http://www.omg.org/spec/EDMC-FIBO/FND/AgentsAndPeople/Agents/>
 prefix img: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/ImageOntology/>
 prefix frma: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/FRMA/>
+prefix pfd: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/PersonFaceAndDemographicOntology/>
 
 select distinct ?class ?name ?super ?super_name
  where{
@@ -123,6 +125,7 @@ baseQuery = """
     prefix fibo-fnd-aap-a: <http://www.omg.org/spec/EDMC-FIBO/FND/AgentsAndPeople/Agents/>
     prefix img: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/ImageOntology/>
     prefix frma: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/FRMA/>
+    prefix pfd: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/PersonFaceAndDemographicOntology/>
 
     select distinct ?Image ?classification ?Name
         where {
@@ -133,7 +136,7 @@ baseQuery = """
           ?Person fibo-fnd-aap-a:hasName ?Name .
 """
 
-baseCountQuery = """
+prefix = """
     prefix mlmo: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/>
     prefix fibo-fnd-arr-arr: <http://www.omg.org/spec/EDMC-FIBO/FND/Arrangements/Arrangements/>
     prefix lio: <http://purl.org/net/lio#>
@@ -141,7 +144,10 @@ baseCountQuery = """
     prefix fibo-fnd-aap-a: <http://www.omg.org/spec/EDMC-FIBO/FND/AgentsAndPeople/Agents/>
     prefix img: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/ImageOntology/>
     prefix frma: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/FRMA/>
+    prefix pfd: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/PersonFaceAndDemographicOntology/>
+"""
 
+baseCountQuery = """
     select (count(distinct ?Image) as ?count)
         where {
           ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
@@ -149,6 +155,22 @@ baseCountQuery = """
           ?Result mlmo:hasFeature ?Image .
           ?Image lio:depicts ?Person .
           ?Person fibo-fnd-aap-a:hasName ?Name .
+"""
+
+baseAccQuery = """
+    select ?numCorrect ?count
+    where {
+"""
+
+baseNumCorrectQuery = """
+    select (count(distinct ?classification) as ?numCorrect)
+    where {
+        ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+        ?Result mlmo:hasFeature ?Image .
+        ?Image lio:depicts ?Person .
+        ?Person fibo-fnd-aap-a:hasName ?Name .
+        ?Result lcc-lr:hasTag ?classification .
+        filter (?classification = ?Name)
 """
 
 mugshotQuery = """
@@ -264,27 +286,149 @@ NasalOcclusionQuery = """
     ?NasalOcclusionClass rdfs:subClassOf* frma:NasalOcclusion .
 """
 
+CheekQuery = """
+    ?Person <http://purl.obolibrary.org/obo/BFO_0000051> ?Face .
+    ?Face <http://purl.obolibrary.org/obo/BFO_0000051> ?cheek .
+    ?Face a <http://purl.obolibrary.org/obo/UBERON_0001456> .
+    ?cheek a ?cheekClass .
+    ?cheekClass rdfs:subClassOf* <http://purl.obolibrary.org/obo/UBERON_0001567> .
+"""
 
+HighCheekQuery = """
+    ?Person <http://purl.obolibrary.org/obo/BFO_0000051> ?Face .
+    ?Face <http://purl.obolibrary.org/obo/BFO_0000051> ?cheek .
+    ?Face a <http://purl.obolibrary.org/obo/UBERON_0001456> .
+    ?cheek a pfd:HighCheekbones .
+"""
+
+RosyCheekQuery = """
+    ?Person <http://purl.obolibrary.org/obo/BFO_0000051> ?Face .
+    ?Face <http://purl.obolibrary.org/obo/BFO_0000051> ?cheek .
+    ?Face a <http://purl.obolibrary.org/obo/UBERON_0001456> .
+    ?cheek a pfd:RosyCheeks .
+"""
+
+ChinQuery = """
+    ?Person <http://purl.obolibrary.org/obo/BFO_0000051> ?Face .
+    ?Face <http://purl.obolibrary.org/obo/BFO_0000051> ?chin .
+    ?Face a <http://purl.obolibrary.org/obo/UBERON_0001456> .
+    ?chin a <http://purl.obolibrary.org/obo/UBERON_0008199> .
+"""
+
+DoubleChinQuery = """
+    ?Person <http://purl.obolibrary.org/obo/BFO_0000051> ?Face .
+    ?Face <http://purl.obolibrary.org/obo/BFO_0000051> ?chin .
+    ?Face a <http://purl.obolibrary.org/obo/UBERON_0001456> .
+    ?chin a pfd:DoubleChin .
+"""
+
+RoundJawQuery = """
+    ?Person <http://purl.obolibrary.org/obo/BFO_0000051> ?Face .
+    ?Face <http://purl.obolibrary.org/obo/BFO_0000051> ?chin .
+    ?Face a <http://purl.obolibrary.org/obo/UBERON_0001456> .
+    ?chin a pfd:RoundJaw .
+"""
+
+DemographicQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a ?demoClass .
+    ?demoClass rdfs:subClassOf* pfd:Demographic .
+"""
+AgeRangeQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a ?demoClass .
+    ?demoClass rdfs:subClassOf* pfd:AgeRange .
+"""
+BabyQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:Baby .
+"""
+ChildQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:Child .
+"""
+MiddleAgedQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:MiddleAged .
+"""
+SeniorQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:Senior .
+"""
+YouthQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:Baby .
+"""
+
+
+
+
+EthnicityQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a ?demoClass .
+    ?demoClass rdfs:subClassOf* pfd:Ethnicity .
+"""
+AsianQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:Asian .
+"""
+BlackQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:Black .
+"""
+IndianQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:Indian .
+"""
+WhiteQuery = """
+    ?Person pfd:hasDemographic ?Demo .
+    ?Demo a pfd:White .
+"""
+obo = "http://purl.obolibrary.org/obo/"
+pfd = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/PersonFaceAndDemographicOntology/"
 
 querymapper = {
-"https://w3id.org/lio/v1#Image" : "",
-frma + "MugShotPhoto": mugshotQuery,
-frma + "Occlusion": occlusionQuery,
-frma + "CervicalOcclusion" : cervicalOcclusionQuery,
-frma + "FaceOcclusion" : FaceOcclusionQuery,
-frma + "LowerFaceOcclusion" : LowerFaceOcclusionQuery,
-frma + "UpperFaceOcclusion" : UpperFaceOcclusionQuery,
-frma + "BuccalOcclusion" : BuccalOcclusionQuery,
-frma + "OralOcclusion" : OralOcclusionQuery,
-frma + "MentalOcclusion" : MentalOcclusionQuery,
-frma + "ParotidOcclusion" : ParotidOcclusionQuery,
-frma + "ZygomaticOcclusion" : ZygomaticOcclusionQuery,
+    lio + "Image" : "",
+    frma + "MugShotPhoto": mugshotQuery,
+    frma + "Occlusion": occlusionQuery,
+    frma + "CervicalOcclusion" : cervicalOcclusionQuery,
+    frma + "FaceOcclusion" : FaceOcclusionQuery,
+    frma + "LowerFaceOcclusion" : LowerFaceOcclusionQuery,
+    frma + "UpperFaceOcclusion" : UpperFaceOcclusionQuery,
+    frma + "BuccalOcclusion" : BuccalOcclusionQuery,
+    frma + "OralOcclusion" : OralOcclusionQuery,
+    frma + "MentalOcclusion" : MentalOcclusionQuery,
+    frma + "ParotidOcclusion" : ParotidOcclusionQuery,
+    frma + "ZygomaticOcclusion" : ZygomaticOcclusionQuery,
 
+    frma + "AuricleOcclusion" : AuricleOcclusionQuery,
+    frma + "CranialOcclusion" : CranialOcclusionQuery,
+    frma + "FrontalOcclusion" : FrontalOcclusionQuery,
+    frma + "OcularOcclusion" : OcularOcclusionQuery,
+    frma + "NasalOcclusion" : NasalOcclusionQuery,
 
-frma + "AuricleOcclusion" : AuricleOcclusionQuery,
-frma + "CranialOcclusion" : CranialOcclusionQuery,
-frma + "FrontalOcclusion" : FrontalOcclusionQuery,
-frma + "OcularOcclusion" : OcularOcclusionQuery,
-frma + "NasalOcclusion" : NasalOcclusionQuery,
+    lio + "PictorialElement" : "",
+    pfd + "Person" : "",
 
+    obo + "UBERON_0001567" : CheekQuery,
+    pfd + "HighCheekbones" : HighCheekQuery,
+    pfd + "RosyCheeks" : RosyCheekQuery,
+
+    obo + "UBERON_0008199" : ChinQuery,
+    pfd + "DoubleChin" : DoubleChinQuery,
+    pfd + "RoundJaw" : RoundJawQuery,
+
+    pfd + "Demographic" : DemographicQuery,
+    pfd + "AgeRange" : AgeRangeQuery,
+    pfd + "Baby" : BabyQuery,
+    pfd + "Child" : ChildQuery,
+    pfd + "MiddleAged" : MiddleAgedQuery,
+    pfd + "Senior" : SeniorQuery,
+    pfd + "Youth" : YouthQuery,
+
+    pfd + "Ethnicity" : EthnicityQuery,
+    pfd + "Asian" : AsianQuery,
+    pfd + "Black" : BlackQuery,
+    pfd + "Indian" : IndianQuery,
+    pfd + "White" : WhiteQuery,
 }

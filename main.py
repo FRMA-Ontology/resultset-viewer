@@ -7,7 +7,7 @@ import math
 import os
 
 path = "lib/lfw/"
-testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/dlibTest01ResultSet"
+testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/FaceNetTest01ResultSet"
 startingNode = "https://w3id.org/lio/v1#Image"
 blazegraphURL = "http://localhost:9999/blazegraph/namespace/kb/sparql"
 queryState = "All"
@@ -249,7 +249,7 @@ incorrectLabel.pack(pady=10, side=LEFT)
 incorrectLabel.bind("<Button-1>", incorrectCommand)
 
 tree = ttk.Treeview(f1)
-queryGenerator.generateTree("http://localhost:9999/blazegraph/namespace/kb/sparql", tree)
+queryGenerator.generateTree("http://localhost:9999/blazegraph/namespace/kb/sparql", testresultset, tree)
 tree.bind("<<TreeviewSelect>>", tree_select)
 tree.pack(expand=True, fill='y')
 print("Here")
