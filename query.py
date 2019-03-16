@@ -15,6 +15,10 @@ frma = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/FRMA/"
 #      }
 # """
 
+
+correctQuery = "filter(?classification = ?Name)"
+incorrectQuery = "filter(?classification != ?Name)"
+
 treeClassQuery = """
 prefix mlmo: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/>
 prefix fibo-fnd-arr-arr: <http://www.omg.org/spec/EDMC-FIBO/FND/Arrangements/Arrangements/>

@@ -9,17 +9,29 @@ nodes = {"https://w3id.org/lio/v1#Image" : rootNode}
 def getModifer(modiferIRI):
     return query.querymapper[modiferIRI]
 
-def generateCountQuery(resultset, modiferIRIs):
+def generateCountQuery(resultset, modiferIRIs, queryState):
     buildableQuery = query.baseCountQuery
     for modiferIRI in modiferIRIs:
         buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
 
+    if(queryState == "Correct"):
+        buildableQuery = buildableQuery + "\n" + query.correctQuery
+
+    if(queryState == "Incorrect"):
+        buildableQuery = buildableQuery + "\n" + query.incorrectQuery
+
     return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)}"
 
-def generateQuery(limit, offset, resultset, modiferIRIs):
+def generateQuery(limit, offset, resultset, modiferIRIs, queryState):
     buildableQuery = query.baseQuery
     for modiferIRI in modiferIRIs:
         buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+
+    if(queryState == "Correct"):
+        buildableQuery = buildableQuery + "\n" + query.correctQuery
+
+    if(queryState == "Incorrect"):
+        buildableQuery = buildableQuery + "\n" + query.incorrectQuery
 
     return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)} ORDER BY ?name limit " + str(limit) + " offset " + str(offset)
 

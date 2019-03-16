@@ -10,7 +10,7 @@ path = "lib/lfw/"
 testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/dlibTest01ResultSet"
 startingNode = "https://w3id.org/lio/v1#Image"
 blazegraphURL = "http://localhost:9999/blazegraph/namespace/kb/sparql"
-
+queryState = "All"
 treeWidth = 300
 
 N = 16 # number  of images
@@ -85,7 +85,7 @@ def displayImage(index, imagePath, correct):
 
 def image_updater(treeSelection):
     sparql = SPARQLWrapper(blazegraphURL)
-    query = queryGenerator.generateQuery(N, N*offset, testresultset, tree.selection())
+    query = queryGenerator.generateQuery(N, N*offset, testresultset, tree.selection(), queryState)
     print(query)
 
     sparql.setQuery(query)
@@ -104,7 +104,7 @@ def image_updater(treeSelection):
         count = count + 1
 
     # update buttons
-    query = queryGenerator.generateCountQuery(testresultset, tree.selection())
+    query = queryGenerator.generateCountQuery(testresultset, tree.selection(), queryState)
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
@@ -205,25 +205,31 @@ def allCommand(event):
    global queryState
    queryState = "All"
    print("State was set to all")
+   image_updater(prevSelect)
+   allLabel.config(image=allImg)
+   correctLabel.config(image=correctDeadImg)
+   incorrectLabel.config(image=incorrectDeadImg)
 
 def correctCommand(event):
    global queryState
    queryState = "Correct"
    print("State was set to correct")
+   image_updater(prevSelect)
+   allLabel.config(image=allDeadImg)
+   correctLabel.config(image=correctImg)
+   incorrectLabel.config(image=incorrectDeadImg)
 
 def incorrectCommand(event):
    global queryState
    queryState = "Incorrect"
    print("State was set to incorrect")
+   image_updater(prevSelect)
+   allLabel.config(image=allDeadImg)
+   correctLabel.config(image=correctDeadImg)
+   incorrectLabel.config(image=incorrectImg)
 
-# allButton = Button(optionButtonFrame, text = "All", command = allCommand)
-# correctButton = Button(optionButtonFrame, text = "Correct", command = correctCommand)
-# incorrectButton = Button(optionButtonFrame, text = "Incorrect", command = incorrectCommand)
+
 optionButtonFrame.pack()
-# allButton.pack(side = "left")
-# correctButton.pack(side = "left")
-# incorrectButton.pack(side = "left")
-
 allImg = ImageTk.PhotoImage(Image.open("lib/all.jpg"))
 allDeadImg = ImageTk.PhotoImage(Image.open("lib/all_dead.jpg"))
 allLabel = Label(optionButtonFrame, image=allImg, fg="grey" )
