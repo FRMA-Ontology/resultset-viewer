@@ -11,6 +11,8 @@ testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/dli
 startingNode = "https://w3id.org/lio/v1#Image"
 blazegraphURL = "http://localhost:9999/blazegraph/namespace/kb/sparql"
 
+treeWidth = 300
+
 N = 16 # number  of images
 NumCols = 4
 NumRowsView = 2
@@ -64,6 +66,7 @@ def right_button(event):
         image_updater(prevSelect)
 
 def rollWheel(event):
+    if(event.x > treeWidth):
         canvas.yview_scroll(-1*event.delta, "units")
 
 def displayImage(index, imagePath, correct):
@@ -110,6 +113,7 @@ def image_updater(treeSelection):
     # make the rest of the labels invisible
     for i in range(count, N):
         imageWidgets[i].grid_forget()
+    root.update()
 
 def tree_select(event):
     global prevSelect
@@ -132,6 +136,8 @@ root = Tk()
 # root.geometry("1016x508")
 
 f1 = Frame(root)
+optionButtonFrame = Frame(f1)
+
 f1.grid(column=0, row=0, sticky="ns")
 f1.grid_propagate(False)
 
@@ -195,11 +201,54 @@ filemenu.add_command(label="Exit", command=root.quit)
 menubar.add_cascade(label="File", menu=filemenu)
 root.config(menu=menubar)
 
+def allCommand(event):
+   global queryState
+   queryState = "All"
+   print("State was set to all")
+
+def correctCommand(event):
+   global queryState
+   queryState = "Correct"
+   print("State was set to correct")
+
+def incorrectCommand(event):
+   global queryState
+   queryState = "Incorrect"
+   print("State was set to incorrect")
+
+# allButton = Button(optionButtonFrame, text = "All", command = allCommand)
+# correctButton = Button(optionButtonFrame, text = "Correct", command = correctCommand)
+# incorrectButton = Button(optionButtonFrame, text = "Incorrect", command = incorrectCommand)
+optionButtonFrame.pack()
+# allButton.pack(side = "left")
+# correctButton.pack(side = "left")
+# incorrectButton.pack(side = "left")
+
+allImg = ImageTk.PhotoImage(Image.open("lib/all.jpg"))
+allDeadImg = ImageTk.PhotoImage(Image.open("lib/all_dead.jpg"))
+allLabel = Label(optionButtonFrame, image=allImg, fg="grey" )
+allLabel.pack(pady=10, side=LEFT)
+allLabel.bind("<Button-1>", allCommand)
+
+correctImg = ImageTk.PhotoImage(Image.open("lib/correct.jpg"))
+correctDeadImg = ImageTk.PhotoImage(Image.open("lib/correct_dead.jpg"))
+correctLabel = Label(optionButtonFrame, image=correctDeadImg, fg="grey" )
+correctLabel.pack(pady=10, side=LEFT)
+correctLabel.bind("<Button-1>", correctCommand)
+
+incorrectImg = ImageTk.PhotoImage(Image.open("lib/incorrect.jpg"))
+incorrectDeadImg = ImageTk.PhotoImage(Image.open("lib/incorrect_dead.jpg"))
+incorrectLabel = Label(optionButtonFrame, image=incorrectDeadImg, fg="grey" )
+incorrectLabel.pack(pady=10, side=LEFT)
+incorrectLabel.bind("<Button-1>", incorrectCommand)
 
 tree = ttk.Treeview(f1)
 queryGenerator.generateTree("http://localhost:9999/blazegraph/namespace/kb/sparql", tree)
 tree.bind("<<TreeviewSelect>>", tree_select)
 tree.pack(expand=True, fill='y')
+print("Here")
+tree.heading("#0", text="Visual Attributes")
+tree.column("#0", minwidth=100, width=treeWidth)
 
 
 # these will be place holders
@@ -238,3 +287,4 @@ root.update()
 root.after(0, fix)
 
 root.mainloop()
+# root.destroy()

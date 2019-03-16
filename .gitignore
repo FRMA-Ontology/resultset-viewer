@@ -3,3 +3,4 @@ lib/blazegraph/blazegraph.jar
 env
 .DS_Store
 *.pyc
+get-pip.py
