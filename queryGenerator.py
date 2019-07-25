@@ -132,3 +132,16 @@ def generateTree(blazegraphURL, resultset, tree):
            tree.insert(node.parent.name, 'end', node.name, text = label)
 
    return 0
+
+def getResultSets(blazegraphURL):
+   sparql = SPARQLWrapper(blazegraphURL)
+   sparql.setQuery(query.resultSetQuery)
+   sparql.setReturnFormat(JSON)
+   results = sparql.query().convert()
+
+   iris = []
+   # Add in all top level nodes and capture the rest of the dependencies
+   for result in results["results"]["bindings"]:
+       iris.append(result["ResultSet"]["value"])
+
+   return iris

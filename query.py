@@ -192,6 +192,14 @@ prefix = """
     prefix wt: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/WearableThingsOntology/>
 """
 
+resultSetQuery = prefix + """
+
+    select distinct ?ResultSet
+    where{
+        ?ResultSet a mlmo:ResultSet .
+    }
+"""
+
 baseCountQuery = """
     select (count(distinct ?Image) as ?count)
         where {

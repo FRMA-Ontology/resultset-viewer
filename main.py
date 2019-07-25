@@ -31,19 +31,38 @@ rightDead = True
 prevSelect = []
 
 def donothing():
-   filewin = Toplevel(root)
-   button = Button(filewin, text="Do nothing button", fg="red")
-   button.pack()
+    win = Toplevel()
+    win.wm_title("ResultSet Selector")
+    win.geometry("450x100+300+300")
 
-# def donothing():
-#     win = Toplevel()
-#     win.wm_title("Window")
-#
-#     l = Label(win, text="Input")
-#     l.grid(row=0, column=0)
-#
-#     b = Button(win, text="Okay", command=win.destroy)
-#     b.grid(row=1, column=0)
+    l = Label(win, text="Choose one:")
+    l.grid(row=0, column=0)
+
+    resultsets = queryGenerator.getResultSets(blazegraphURL)
+    resultsetPrefix = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/"
+    reducedResultsets = map(lambda x : x.replace(resultsetPrefix, ""), resultsets)
+
+    if len(reducedResultsets) > 0:
+        cb = ttk.Combobox(win, values=reducedResultsets)
+        cb.set(reducedResultsets[0])
+    else:
+        cb = Label(win, text="No results loaded, use the open menu option!")
+
+    cb.grid(row=1, column=1)
+    doneLabel = Label(win, image=doneImg, fg="grey")
+    doneLabel.grid(row=3, column=1)
+
+    def doneAction(arg):
+        if len(reducedResultsets) > 0:
+            global testresultset
+            testresultset = resultsetPrefix + cb.get()
+            setResultSet()
+
+        win.destroy()
+
+    doneLabel.bind("<Button-1>", doneAction)
+
+
 
 def updateOffsetButtons(actualRecieved, totalNumberOfResults):
     global leftDead
@@ -155,6 +174,8 @@ optionButtonFrame = Frame(f1)
 f1.grid(column=0, row=0, sticky="ns")
 f1.grid_propagate(False)
 
+tree = ttk.Treeview(f1)
+
 f2_0 = Frame(root)
 f2_0.grid(column=1, row=0, sticky="news")
 f2_0.grid_rowconfigure(0, weight=1)
@@ -170,7 +191,7 @@ leftLabel = Label(f3, image=leftImg, fg="grey" )
 leftLabel.pack(padx=5, pady=10, side=LEFT)
 leftLabel.bind("<Button-1>", left_button)
 
-b = Label(f3, text = 'Look Here')
+b = Label(f3, text = '')
 b.pack(padx=5, pady=10, side=LEFT)
 
 rightImg = ImageTk.PhotoImage(Image.open("lib/right.jpg"))
@@ -208,6 +229,7 @@ root.grid_rowconfigure(0, weight=1)
 menubar = Menu(root)
 filemenu = Menu(menubar, tearoff=0)
 # filemenu.add_command(label="New", command=donothing)
+doneImg = ImageTk.PhotoImage(Image.open("lib/done.jpg"))
 filemenu.add_command(label="Select Dataset", command=donothing)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
@@ -262,20 +284,12 @@ incorrectLabel = Label(optionButtonFrame, image=incorrectDeadImg, fg="grey" )
 incorrectLabel.pack(pady=10, side=LEFT)
 incorrectLabel.bind("<Button-1>", incorrectCommand)
 
-tree = ttk.Treeview(f1)
-queryGenerator.generateTree("http://localhost:9999/blazegraph/namespace/kb/sparql", testresultset, tree)
-tree.bind("<<TreeviewSelect>>", tree_select)
-tree.pack(expand=True, fill='y')
-print("Here")
-tree.heading("#0", text="Visual Attributes")
-tree.column("#0", minwidth=100, width=treeWidth)
-
 
 # these will be place holders
 for j in range(NumRows):
     for i in range(NumCols):
-        imageRef.append(ImageTk.PhotoImage(Image.open(path + "Aaron_Eckhart/Aaron_Eckhart_0001.jpg")))
-        imageWidgets.append(Label(f2, compound = CENTER, image = imageRef[-1], bg = "green"))
+        imageRef.append(ImageTk.PhotoImage(Image.open("lib/blank.jpg")))
+        imageWidgets.append(Label(f2, compound = CENTER, image = imageRef[-1], bg = "white"))
         # imageRef.insert(0, ImageTk.PhotoImage(Image.open(path + "Aaron_Eckhart/Aaron_Eckhart_0001.jpg")))
         # imageWidgets.insert(0, Label(f2, compound = CENTER, image = imageRef[0], bg = "green"))
         imageWidgets[-1].grid(row=j, column=i, sticky='news')
@@ -293,9 +307,6 @@ f2_0.config(width=columns_width + vsb.winfo_width(),
 # Set the canvas scrolling region
 canvas.config(scrollregion=canvas.bbox("all"))
 
-tree.focus(startingNode)
-tree.selection_set(startingNode)
-
 def fix():
     a = root.winfo_geometry().split('+')[0]
     b = a.split('x')
@@ -303,8 +314,25 @@ def fix():
     h = int(b[1])
     root.geometry('%dx%d' % (w+1,h+1))
 
+def setResultSet():
+    global tree
+    tree.pack_forget()
+    tree = ttk.Treeview(f1)
+    queryGenerator.generateTree("http://localhost:9999/blazegraph/namespace/kb/sparql", testresultset, tree)
+    tree.bind("<<TreeviewSelect>>", tree_select)
+    tree.pack(expand=True, fill='y')
+    print("Here")
+    tree.heading("#0", text="Visual Attributes")
+    tree.column("#0", minwidth=100, width=treeWidth)
+
+    tree.focus(startingNode)
+    tree.selection_set(startingNode)
+
+
+    root.update()
+    root.after(0, fix)
+
 root.update()
 root.after(0, fix)
-
 root.mainloop()
 # root.destroy()
