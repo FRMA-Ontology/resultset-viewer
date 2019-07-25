@@ -23,5 +23,6 @@ cd project_folder/lib/blazegraph
 java -server -Xmx4g -Dbigdata.propertyFile=RWStore.properties -jar blazegraph.jar
 
 Run gui:
+source env/bin/activate
 cd project_folder
 python main.py

@@ -22,18 +22,41 @@ def generateCountQuery(resultset, modiferIRIs, queryState):
 
     return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)}"
 
+# def generateQuery(limit, offset, resultset, modiferIRIs, queryState):
+#     buildableQuery = query.baseQuery
+#     for modiferIRI in modiferIRIs:
+#         buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+#
+#     if(queryState == "Correct"):
+#         buildableQuery = buildableQuery + "\n" + query.correctQuery
+#
+#     if(queryState == "Incorrect"):
+#         buildableQuery = buildableQuery + "\n" + query.incorrectQuery
+#
+#     return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)} ORDER BY ?Image limit " + str(limit) + " offset " + str(offset)
+
 def generateQuery(limit, offset, resultset, modiferIRIs, queryState):
-    buildableQuery = query.baseQuery
+    buildableQuery = query.prefix + "\n" + query.selectCount
+
+    buildableQuery = buildableQuery + "\n{"
+    buildableQuery = buildableQuery + "\n" + query.selectCorrect + "\n" + query.baseGraph
     for modiferIRI in modiferIRIs:
         buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+    buildableQuery = buildableQuery + "\n" + query.endCorrect + "\n}"
+
+    buildableQuery = buildableQuery + "\n{"
+    buildableQuery = buildableQuery + "\n" + query.selectTotal + "\n" + query.baseGraph
+    for modiferIRI in modiferIRIs:
+        buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+    buildableQuery = buildableQuery + "\n" + query.endTotal + "\n}"
 
     if(queryState == "Correct"):
-        buildableQuery = buildableQuery + "\n" + query.correctQuery
+        buildableQuery = buildableQuery + "\n" + query.correctQuery2
 
     if(queryState == "Incorrect"):
-        buildableQuery = buildableQuery + "\n" + query.incorrectQuery
+        buildableQuery = buildableQuery + "\n" + query.incorrectQuery2
 
-    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)} ORDER BY ?name limit " + str(limit) + " offset " + str(offset)
+    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)} ORDER BY ?Image limit " + str(limit) + " offset " + str(offset)
 
 def generateAccuracyQuery(resultset, modiferIRIs):
     buildableQuery = ""
@@ -83,6 +106,7 @@ def generateTree(blazegraphURL, resultset, tree):
    for node in PreOrderIter(rootNode):
        label = vars(node).get("label")
        q = generateAccuracyQuery(resultset, [node.name])
+       print('This Query: ' + q)
        if(q == "Error"):
            label = label + "(" + q + ")"
        else:

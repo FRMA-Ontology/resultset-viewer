@@ -7,7 +7,10 @@ import math
 import os
 
 path = "lib/lfw/"
-testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/FaceNetTest01ResultSet"
+## testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/FaceNetTest01ResultSet"
+testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/dlibtest00ResultSet"
+## testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/facenettest01ResultSet"
+
 startingNode = "https://w3id.org/lio/v1#Image"
 blazegraphURL = "http://localhost:9999/blazegraph/namespace/kb/sparql"
 queryState = "All"
@@ -31,6 +34,16 @@ def donothing():
    filewin = Toplevel(root)
    button = Button(filewin, text="Do nothing button", fg="red")
    button.pack()
+
+# def donothing():
+#     win = Toplevel()
+#     win.wm_title("Window")
+#
+#     l = Label(win, text="Input")
+#     l.grid(row=0, column=0)
+#
+#     b = Button(win, text="Okay", command=win.destroy)
+#     b.grid(row=1, column=0)
 
 def updateOffsetButtons(actualRecieved, totalNumberOfResults):
     global leftDead
@@ -94,13 +107,14 @@ def image_updater(treeSelection):
     count=0
     for result in results["results"]["bindings"]:
         imageIRI = result["Image"]["value"]
-        classification = result["classification"]["value"]
+        correct = result["Correct"]["value"]
+        total = result["Total"]["value"]
         imageName = result["Name"]["value"]
 
         imageNum = imageIRI.split("/")[10]
         filename = path + imageName.replace(" ", "_") + "/" + imageName.replace(" ", "_") + "_" + imageNum.zfill(4) + ".jpg"
 
-        displayImage(count, filename, classification == imageName)
+        displayImage(count, filename, correct == total)
         count = count + 1
 
     # update buttons
@@ -193,8 +207,8 @@ root.grid_rowconfigure(0, weight=1)
 
 menubar = Menu(root)
 filemenu = Menu(menubar, tearoff=0)
-filemenu.add_command(label="New", command=donothing)
-filemenu.add_command(label="Open", command=donothing)
+# filemenu.add_command(label="New", command=donothing)
+filemenu.add_command(label="Select Dataset", command=donothing)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
 

@@ -20,6 +20,9 @@ lio = "https://w3id.org/lio/v1#"
 correctQuery = "filter(?classification = ?Name)"
 incorrectQuery = "filter(?classification != ?Name)"
 
+correctQuery2 = "filter(?Correct = ?Total)"
+incorrectQuery2 = "filter(?Correct < ?Total)"
+
 treeClassQuery = """
 prefix mlmo: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/>
 prefix fibo-fnd-arr-arr: <http://www.omg.org/spec/EDMC-FIBO/FND/Arrangements/Arrangements/>
@@ -141,6 +144,40 @@ baseQuery = """
           ?Image lio:depicts ?Person .
           ?Person fibo-fnd-aap-a:hasName ?Name .
 """
+
+selectCount = """
+    select distinct ?Image ?Name ?Correct ?Total
+        where {
+"""
+
+selectCorrect = """
+    select distinct ?Image ?Name (count(distinct ?Result) as ?Correct)
+        where {
+"""
+
+selectTotal = """
+    select distinct ?Image ?Name (count(distinct ?Result) as ?Total)
+        where {
+"""
+
+baseGraph = """
+    ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+    ?Result lcc-lr:hasTag ?classification .
+    ?Result mlmo:hasFeature ?Image .
+    ?Image lio:depicts ?Person .
+    ?Person fibo-fnd-aap-a:hasName ?Name .
+"""
+
+endCorrect = """
+    filter(?classification = ?Name)
+    } GROUP BY ?Image ?Name
+"""
+
+endTotal = """
+    } GROUP BY ?Image ?Name
+"""
+
+
 
 prefix = """
     prefix mlmo: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/>
