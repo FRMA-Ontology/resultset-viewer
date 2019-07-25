@@ -1,10 +1,13 @@
 from Tkinter import *
+import tkFileDialog as filedialog
 import ttk
 from SPARQLWrapper import SPARQLWrapper, JSON
 from PIL import ImageTk, Image
 import queryGenerator
 import math
 import os
+
+import resultParser
 
 path = "lib/lfw/"
 ## testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/FaceNetTest01ResultSet"
@@ -30,7 +33,58 @@ leftDead = True
 rightDead = True
 prevSelect = []
 
-def donothing():
+def newDatasetMenu():
+    win = Toplevel()
+    win.wm_title("Dataset Loader")
+    win.geometry("475x130+300+300")
+
+    resultName = Label(win, text="Test Name:")
+    resultName.grid(row=0, column=0)
+    resultName_field = Entry(win)
+    resultName_field.grid(row=0, column=1, ipadx="50")
+
+    algorithmName = Label(win, text="Algorithm Name:")
+    algorithmName.grid(row=1, column=0)
+    algorithmName_field = Entry(win)
+    algorithmName_field.grid(row=1, column=1, ipadx="50")
+
+    testFile = Label(win, text="Test File:")
+    testFile.grid(row=2, column=0)
+    entryText = StringVar()
+    testFile_field = Entry(win, state='disabled', textvariable=entryText)
+    testFile_field.grid(row=2, column=1, ipadx="50")
+    testFile_button = Label(win, text="...", fg="black", bg="grey", borderwidth=2, relief="raised")
+    testFile_button.grid(row=2, column=2)
+
+
+
+    doneLabel = Label(win, image=doneImg, fg="grey")
+    doneLabel.grid(row=3, column=0)
+
+    def fileSelect(arg):
+        filename = filedialog.askopenfilename(title = "Select results file")
+        entryText.set(filename)
+
+    testFile_button.bind("<Button-1>", fileSelect)
+
+    def doneAction(arg):
+        test = resultName_field.get()
+        algorithm = algorithmName_field.get()
+        filePath = testFile_field.get()
+
+        if (test == '') or (algorithm == '') or (filePath == ''):
+            doneLabel = Label(win, text="Please fill out all forms...", fg="red")
+            doneLabel.grid(row=3, column=1)
+        else:
+            print('test = ' + str(test))
+            print('algorithm = ' + str(algorithm))
+            print('filePath = ' + str(filePath))
+            resultParser.loadResultSet(test, algorithm, filePath)
+            win.destroy()
+
+    doneLabel.bind("<Button-1>", doneAction)
+
+def selectResultSetMenu():
     win = Toplevel()
     win.wm_title("ResultSet Selector")
     win.geometry("450x100+300+300")
@@ -227,10 +281,12 @@ root.grid_rowconfigure(0, weight=1)
 
 
 menubar = Menu(root)
-filemenu = Menu(menubar, tearoff=0)
-# filemenu.add_command(label="New", command=donothing)
+
 doneImg = ImageTk.PhotoImage(Image.open("lib/done.jpg"))
-filemenu.add_command(label="Select Dataset", command=donothing)
+
+filemenu = Menu(menubar, tearoff=0)
+filemenu.add_command(label="New Dataset", command=newDatasetMenu)
+filemenu.add_command(label="Select ResultSet", command=selectResultSetMenu)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
 
