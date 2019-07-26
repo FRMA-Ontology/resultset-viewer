@@ -6,6 +6,7 @@ from PIL import ImageTk, Image
 import queryGenerator
 import math
 import os
+from constants import *
 
 import resultParser
 
@@ -15,7 +16,6 @@ testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/dli
 ## testresultset = "https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/facenettest01ResultSet"
 
 startingNode = "https://w3id.org/lio/v1#Image"
-blazegraphURL = "http://localhost:9999/blazegraph/namespace/kb/sparql"
 queryState = "All"
 treeWidth = 300
 
@@ -79,8 +79,14 @@ def newDatasetMenu():
             print('test = ' + str(test))
             print('algorithm = ' + str(algorithm))
             print('filePath = ' + str(filePath))
-            resultParser.loadResultSet(test, algorithm, filePath)
-            win.destroy()
+            error = resultParser.loadResultSet(test, algorithm, filePath)
+
+            if error is None:
+                win.destroy()
+            else:
+                doneLabel = Label(win, text=error, fg="red")
+                doneLabel.grid(row=3, column=1)
+
 
     doneLabel.bind("<Button-1>", doneAction)
 
@@ -116,7 +122,33 @@ def selectResultSetMenu():
 
     doneLabel.bind("<Button-1>", doneAction)
 
+def clearDatasetMenu():
+    win = Toplevel()
+    win.wm_title("Clear Data")
+    win.geometry("450x100+300+300")
+    l = Label(win, text="This will delete all loaded data and close the program!")
+    l.grid(row=0, column=0)
 
+    yes_button = Label(win, text="Yes", fg="black", bg="grey", borderwidth=2, relief="raised")
+    yes_button.grid(row=1, column=0)
+
+    no_button = Label(win, text="No", fg="black", bg="grey", borderwidth=2, relief="raised")
+    no_button.grid(row=1, column=1)
+
+    def yesAction(arg):
+        resultParser.clearTripleStore(blazegraphURL)
+        resultParser.loadOnts(namespace)
+
+
+        win.destroy()
+        root.destroy()
+
+    yes_button.bind("<Button-1>", yesAction)
+
+    def noAction(arg):
+        win.destroy()
+
+    no_button.bind("<Button-1>", noAction)
 
 def updateOffsetButtons(actualRecieved, totalNumberOfResults):
     global leftDead
@@ -287,6 +319,7 @@ doneImg = ImageTk.PhotoImage(Image.open("lib/done.jpg"))
 filemenu = Menu(menubar, tearoff=0)
 filemenu.add_command(label="New Dataset", command=newDatasetMenu)
 filemenu.add_command(label="Select ResultSet", command=selectResultSetMenu)
+filemenu.add_command(label="Clear Datasets", command=clearDatasetMenu)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
 
