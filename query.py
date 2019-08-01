@@ -124,35 +124,95 @@ select distinct ?class ?name ?super ?super_name
 } ORDER BY ?super_name ?name
 """
 
-baseQuery = """
-    prefix mlmo: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/>
-    prefix fibo-fnd-arr-arr: <http://www.omg.org/spec/EDMC-FIBO/FND/Arrangements/Arrangements/>
-    prefix lio: <http://purl.org/net/lio#>
-    prefix lcc-lr: <http://www.omg.org/spec/LCC/Languages/LanguageRepresentation/>
-    prefix fibo-fnd-aap-a: <http://www.omg.org/spec/EDMC-FIBO/FND/AgentsAndPeople/Agents/>
-    prefix img: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/ImageOntology/>
-    prefix frma: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/FRMA/>
-    prefix pfd: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/PersonFaceAndDemographicOntology/>
-    prefix ho: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/HairOntology/>
-    prefix wt: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/WearableThingsOntology/>
-
-    select distinct ?Image ?classification ?Name
-        where {
-          ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
-          ?Result lcc-lr:hasTag ?classification .
-          ?Result mlmo:hasFeature ?Image .
-          ?Image lio:depicts ?Person .
-          ?Person fibo-fnd-aap-a:hasName ?Name .
-"""
+# baseQuery = """
+#     prefix mlmo: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/>
+#     prefix fibo-fnd-arr-arr: <http://www.omg.org/spec/EDMC-FIBO/FND/Arrangements/Arrangements/>
+#     prefix lio: <http://purl.org/net/lio#>
+#     prefix lcc-lr: <http://www.omg.org/spec/LCC/Languages/LanguageRepresentation/>
+#     prefix fibo-fnd-aap-a: <http://www.omg.org/spec/EDMC-FIBO/FND/AgentsAndPeople/Agents/>
+#     prefix img: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/ImageOntology/>
+#     prefix frma: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/FRMA/>
+#     prefix pfd: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/PersonFaceAndDemographicOntology/>
+#     prefix ho: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/HairOntology/>
+#     prefix wt: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/WearableThingsOntology/>
+#
+#     select distinct ?Image ?classification ?Name
+#         where {
+#           ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+#           ?Result lcc-lr:hasTag ?classification .
+#           ?Result mlmo:hasFeature ?Image .
+#           ?Image lio:depicts ?Person .
+#           ?Person fibo-fnd-aap-a:hasName ?Name .
+# """
 
 selectCount = """
     select distinct ?Image ?Name ?Correct ?Total
         where {
 """
 
-selectCorrect = """
-    select distinct ?Image ?Name (count(distinct ?Result) as ?Correct)
+countImages = """
+    select(count(distinct ?Image) as ?count)
         where {
+"""
+
+# selectCorrect = """
+#     select distinct ?Image ?Name (count(distinct ?Result) as ?Correct)
+#         where {
+# """
+
+baseQuery = """
+    ?Image lio:depicts ?Person .
+    ?Person fibo-fnd-aap-a:hasName ?Name .
+"""
+
+selectTruePositive = """
+    select distinct ?Image ?Name (count(distinct ?Result) as ?truePositive)
+        where {
+""" + baseQuery
+
+endTruePositive = """
+    optional{
+        ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+        ?Result mlmo:hasFeature ?Image .
+        ?Result mlmo:hasFeature ?Image2 .
+        filter(?Image != ?Image2)
+
+        ?Image2 lio:depicts ?Person2 .
+        ?Person2 fibo-fnd-aap-a:hasName ?Name2 .
+        ?Result lcc-lr:hasTag "Match"^^xsd:string .
+        filter (?Name = ?Name2)
+      }
+    } GROUP BY ?Image ?Name
+"""
+
+selectTrueNegative = """
+    select distinct ?Image ?Name (count(distinct ?Result) as ?trueNegative)
+        where {
+""" + baseQuery
+
+endTrueNegative = """
+    optional{
+        ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+        ?Result mlmo:hasFeature ?Image .
+        ?Result mlmo:hasFeature ?Image2 .
+        filter(?Image != ?Image2)
+
+        ?Image2 lio:depicts ?Person2 .
+        ?Person2 fibo-fnd-aap-a:hasName ?Name2 .
+        ?Result lcc-lr:hasTag "Not a Match"^^xsd:string .
+        filter (?Name != ?Name2)
+      }
+    } GROUP BY ?Image ?Name
+"""
+
+# endCorrect = """
+#     filter(?classification = ?Name)
+#     } GROUP BY ?Image ?Name
+# """
+
+baseQuery = """
+      ?Image lio:depicts ?Person .
+      ?Person fibo-fnd-aap-a:hasName ?Name .
 """
 
 selectTotal = """
@@ -162,15 +222,14 @@ selectTotal = """
 
 baseGraph = """
     ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
-    ?Result lcc-lr:hasTag ?classification .
     ?Result mlmo:hasFeature ?Image .
-    ?Image lio:depicts ?Person .
-    ?Person fibo-fnd-aap-a:hasName ?Name .
-"""
+    ?Result mlmo:hasFeature ?Image2 .
+    filter(?Image != ?Image2)
 
-endCorrect = """
-    filter(?classification = ?Name)
-    } GROUP BY ?Image ?Name
+    ?Image lio:depicts ?Person .
+    ?Image2 lio:depicts ?Person2 .
+
+    ?Person fibo-fnd-aap-a:hasName ?Name .
 """
 
 endTotal = """
@@ -190,6 +249,7 @@ prefix = """
     prefix pfd: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/PersonFaceAndDemographicOntology/>
     prefix ho: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/HairOntology/>
     prefix wt: <https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/WearableThingsOntology/>
+    prefix olo: <http://purl.org/ontology/olo/core#>
 """
 
 resultSetQuery = prefix + """
@@ -201,29 +261,68 @@ resultSetQuery = prefix + """
 """
 
 baseCountQuery = """
-    select (count(distinct ?Image) as ?count)
-        where {
-          ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
-          ?Result lcc-lr:hasTag ?classification .
-          ?Result mlmo:hasFeature ?Image .
-          ?Image lio:depicts ?Person .
-          ?Person fibo-fnd-aap-a:hasName ?Name .
+    select (count(distinct ?Result) as ?count)
+    where {
+      ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+      ?Result mlmo:hasFeature ?Image .
+      ?Result mlmo:hasFeature ?Image2 .
+      filter(?Image != ?Image2)
+
+      ?Image lio:depicts ?Person .
+      ?Image2 lio:depicts ?Person2 .
 """
 
 baseAccQuery = """
-    select ?numCorrect ?count
+    ## select ?numCorrect ?count
+    select (?truePositive + ?trueNegative as ?numCorrect) ?count
     where {
 """
 
-baseNumCorrectQuery = """
-    select (count(distinct ?classification) as ?numCorrect)
+# baseNumCorrectQuery = """
+#     select (count(distinct ?classification) as ?numCorrect)
+#     where {
+#         ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+#         ?Result mlmo:hasFeature ?Image .
+#         ?Image lio:depicts ?Person .
+#         ?Person fibo-fnd-aap-a:hasName ?Name .
+#         ?Result lcc-lr:hasTag ?classification .
+#         filter (?classification = ?Name)
+# """
+
+baseNumTruePositive = """
+    select (count(distinct ?Result) as ?truePositive)
     where {
-        ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
-        ?Result mlmo:hasFeature ?Image .
-        ?Image lio:depicts ?Person .
-        ?Person fibo-fnd-aap-a:hasName ?Name .
-        ?Result lcc-lr:hasTag ?classification .
-        filter (?classification = ?Name)
+      ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+      ?Result mlmo:hasFeature ?Image .
+      ?Result mlmo:hasFeature ?Image2 .
+      filter(?Image != ?Image2)
+
+      ?Image lio:depicts ?Person .
+      ?Image2 lio:depicts ?Person2 .
+
+      ?Person fibo-fnd-aap-a:hasName ?Name .
+      ?Person2 fibo-fnd-aap-a:hasName ?Name2 .
+
+      ?Result lcc-lr:hasTag "Match"^^xsd:string .
+      filter (?Name = ?Name2)
+"""
+
+baseNumTrueNegative = """
+    select (count(distinct ?Result) as ?trueNegative)
+    where {
+      ?ResultSet fibo-fnd-arr-arr:hasConstituent ?Result .
+      ?Result mlmo:hasFeature ?Image .
+      ?Result mlmo:hasFeature ?Image2 .
+      filter(?Image != ?Image2)
+
+      ?Image lio:depicts ?Person .
+      ?Image2 lio:depicts ?Person2 .
+
+      ?Person fibo-fnd-aap-a:hasName ?Name .
+      ?Person2 fibo-fnd-aap-a:hasName ?Name2 .
+
+      ?Result lcc-lr:hasTag "Not a Match"^^xsd:string .
+      filter (?Name != ?Name2)
 """
 
 mugshotQuery = """

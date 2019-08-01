@@ -8,6 +8,8 @@ import requests
 hasFeature = rdflib.term.URIRef("https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/hasFeature")
 hasConstituent = rdflib.term.URIRef("http://www.omg.org/spec/EDMC-FIBO/FND/Arrangements/Arrangements/hasConstituent")
 hasTag = rdflib.term.URIRef("http://www.omg.org/spec/LCC/Languages/LanguageRepresentation/hasTag")
+ResultClass = rdflib.term.URIRef("https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/Result")
+next = rdflib.term.URIRef("http://purl.org/ontology/olo/core#next")
 
 def text2IRI(value):
     value = value.lower().replace(' ', '-')
@@ -110,31 +112,33 @@ def loadResultSet(testName, algorithmName, filepath):
     graph.add((resultset_IRI, RDFS.label, rdflib.term.Literal(algorithmName, datatype=XSD.string)))
 
     with open(filepath) as fp:
-        cnt = 0
-
-        def addResult(graph, feat, tag, result, cnt):
-            image_IRI = rdflib.term.URIRef("https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/Image/" + feat + "/Image")
-            result_IRI = rdflib.term.URIRef("https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/" + iri + "/Result" + str(cnt))
-            cnt = cnt +1
-
-            if not result:
-                tag = 'No Match!'
-
-            # Create the result
-            graph.add((result_IRI, RDF.type, rdflib.term.URIRef("https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/MachineLearningModelOntology/Result")))
-            graph.add((result_IRI, hasTag, rdflib.term.Literal(tag, datatype=XSD.string)))
-            graph.add((result_IRI, hasFeature, image_IRI))
-            graph.add((resultset_IRI, hasConstituent, result_IRI))
-            return (cnt, graph)
-
-        for line in fp:
+        for cnt, line in enumerate(fp):
             lsplit = line.split("\t")
 
             if len(lsplit) != 5:
                 return "Error bad result file"
 
-            (cnt, graph) = addResult(graph, lsplit[0].replace("_", "") + "/"+lsplit[1], lsplit[2].replace("_", " "), str2bool(lsplit[4]), cnt)
-            (cnt, graph) = addResult(graph, lsplit[2].replace("_", "") + "/"+lsplit[3], lsplit[0].replace("_", " "), str2bool(lsplit[4]), cnt)
+            result_IRI = rdflib.term.URIRef("https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/{0}/Result{1}".format(iri, cnt))
+            image1_IRI = rdflib.term.URIRef("https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/Image/{0}/{1}/Image".format(lsplit[0].replace("_", ""), lsplit[1]))
+            image2_IRI = rdflib.term.URIRef("https://tw.rpi.edu/Courses/Ontologies/2018/FRMA/Individuals/Image/{0}/{1}/Image".format(lsplit[2].replace("_", ""), lsplit[3]))
+
+            if str2bool(lsplit[4]):
+                if lsplit[0] == lsplit[2]:
+                    tag = rdflib.term.Literal("Match", datatype=XSD.string)
+                else:
+                    tag = rdflib.term.Literal("Not a Match", datatype=XSD.string)
+            else:
+                if lsplit[0] == lsplit[2]:
+                    tag = rdflib.term.Literal("Not a Match", datatype=XSD.string)
+                else:
+                    tag = rdflib.term.Literal("Match", datatype=XSD.string)
+
+            graph.add((result_IRI, RDF.type, ResultClass))
+            graph.add((result_IRI, hasTag, tag))
+            graph.add((result_IRI, hasFeature, image1_IRI))
+            graph.add((result_IRI, hasFeature, image2_IRI))
+            graph.add((image1_IRI, next, image2_IRI))
+            graph.add((resultset_IRI, hasConstituent, result_IRI))
 
 
     # Load triples to blazegraph

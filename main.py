@@ -330,6 +330,8 @@ def allCommand(event):
    global queryState
    queryState = "All"
    print("State was set to all")
+   global offset
+   offset = 0
    image_updater(prevSelect)
    allLabel.config(image=allImg)
    correctLabel.config(image=correctDeadImg)
@@ -339,6 +341,8 @@ def correctCommand(event):
    global queryState
    queryState = "Correct"
    print("State was set to correct")
+   global offset
+   offset = 0
    image_updater(prevSelect)
    allLabel.config(image=allDeadImg)
    correctLabel.config(image=correctImg)
@@ -348,6 +352,8 @@ def incorrectCommand(event):
    global queryState
    queryState = "Incorrect"
    print("State was set to incorrect")
+   global offset
+   offset = 0
    image_updater(prevSelect)
    allLabel.config(image=allDeadImg)
    correctLabel.config(image=correctDeadImg)

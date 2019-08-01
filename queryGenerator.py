@@ -10,17 +10,44 @@ def getModifer(modiferIRI):
     return query.querymapper[modiferIRI]
 
 def generateCountQuery(resultset, modiferIRIs, queryState):
-    buildableQuery = query.prefix + "\n" + query.baseCountQuery
+    buildableQuery = query.prefix + "\n" + query.countImages
+
+    buildableQuery = buildableQuery + "\n{"
+    buildableQuery = buildableQuery + "\n" + query.selectTruePositive
     for modiferIRI in modiferIRIs:
         buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+    buildableQuery = buildableQuery + "\n" + query.endTruePositive + "\n}"
+
+    buildableQuery = buildableQuery + "\n{"
+    buildableQuery = buildableQuery + "\n" + query.selectTrueNegative
+    for modiferIRI in modiferIRIs:
+        buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+    buildableQuery = buildableQuery + "\n" + query.endTrueNegative + "\n}"
+
+    buildableQuery = buildableQuery + "\n{"
+    buildableQuery = buildableQuery + "\n" + query.selectTotal + "\n" + query.baseGraph
+    for modiferIRI in modiferIRIs:
+        buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+    buildableQuery = buildableQuery + "\n" + query.endTotal + "\n}"
 
     if(queryState == "Correct"):
-        buildableQuery = buildableQuery + "\n" + query.correctQuery
+        buildableQuery = buildableQuery + "\n" + query.correctQuery2
 
     if(queryState == "Incorrect"):
-        buildableQuery = buildableQuery + "\n" + query.incorrectQuery
+        buildableQuery = buildableQuery + "\n" + query.incorrectQuery2
 
-    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)}"
+    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet) \n bind( ?trueNegative + ?truePositive as ?Correct) }"
+    # buildableQuery = query.prefix + "\n" + query.baseCountQuery
+    # for modiferIRI in modiferIRIs:
+    #     buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+    #
+    # if(queryState == "Correct"):
+    #     buildableQuery = buildableQuery + "\n" + query.correctQuery
+    #
+    # if(queryState == "Incorrect"):
+    #     buildableQuery = buildableQuery + "\n" + query.incorrectQuery
+    #
+    # return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)}"
 
 # def generateQuery(limit, offset, resultset, modiferIRIs, queryState):
 #     buildableQuery = query.baseQuery
@@ -39,10 +66,16 @@ def generateQuery(limit, offset, resultset, modiferIRIs, queryState):
     buildableQuery = query.prefix + "\n" + query.selectCount
 
     buildableQuery = buildableQuery + "\n{"
-    buildableQuery = buildableQuery + "\n" + query.selectCorrect + "\n" + query.baseGraph
+    buildableQuery = buildableQuery + "\n" + query.selectTruePositive
     for modiferIRI in modiferIRIs:
         buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
-    buildableQuery = buildableQuery + "\n" + query.endCorrect + "\n}"
+    buildableQuery = buildableQuery + "\n" + query.endTruePositive + "\n}"
+
+    buildableQuery = buildableQuery + "\n{"
+    buildableQuery = buildableQuery + "\n" + query.selectTrueNegative
+    for modiferIRI in modiferIRIs:
+        buildableQuery = buildableQuery + "\n" + getModifer(modiferIRI)
+    buildableQuery = buildableQuery + "\n" + query.endTrueNegative + "\n}"
 
     buildableQuery = buildableQuery + "\n{"
     buildableQuery = buildableQuery + "\n" + query.selectTotal + "\n" + query.baseGraph
@@ -56,7 +89,7 @@ def generateQuery(limit, offset, resultset, modiferIRIs, queryState):
     if(queryState == "Incorrect"):
         buildableQuery = buildableQuery + "\n" + query.incorrectQuery2
 
-    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)} ORDER BY ?Image limit " + str(limit) + " offset " + str(offset)
+    return buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet) \n bind( ?trueNegative + ?truePositive as ?Correct) } ORDER BY ?Image limit " + str(limit) + " offset " + str(offset)
 
 def generateAccuracyQuery(resultset, modiferIRIs):
     buildableQuery = ""
@@ -67,7 +100,7 @@ def generateAccuracyQuery(resultset, modiferIRIs):
             print("Error: " + modiferIRI + " not found!!")
             return "Error"
     buildableQuery = buildableQuery + "\n" + "bind( <" + resultset + "> as ?ResultSet)"
-    fullquery = query.prefix + query.baseAccQuery + "{\n" + query.baseCountQuery + "\n" + buildableQuery + "}}\n{" + query.baseNumCorrectQuery + "\n" + buildableQuery + "}}\n}"
+    fullquery = query.prefix + query.baseAccQuery + "{\n" + query.baseCountQuery + "\n" + buildableQuery + "}}\n{" + query.baseNumTruePositive + "\n" + buildableQuery + "}}\n{" + query.baseNumTrueNegative + "\n" + buildableQuery + "}}\n}"
 
     return fullquery
 
