@@ -1,6 +1,6 @@
 Requirements-
 java
-python 2, 3 might work?
+python 3
 
 Setup-
 Download LFW images:
