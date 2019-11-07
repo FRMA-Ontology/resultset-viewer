@@ -416,7 +416,6 @@ def setResultSet():
     queryGenerator.generateTree("http://localhost:9999/blazegraph/namespace/kb/sparql", testresultset, tree)
     tree.bind("<<TreeviewSelect>>", tree_select)
     tree.pack(expand=True, fill='y')
-    print("Here")
     tree.heading("#0", text="Visual Attributes")
     tree.column("#0", minwidth=100, width=treeWidth)
 

@@ -139,7 +139,6 @@ def generateTree(blazegraphURL, resultset, tree):
    for node in PreOrderIter(rootNode):
        label = vars(node).get("label")
        q = generateAccuracyQuery(resultset, [node.name])
-       print('This Query: ' + q)
        if(q == "Error"):
            label = label + "(" + q + ")"
        else:
@@ -158,6 +157,7 @@ def generateTree(blazegraphURL, resultset, tree):
            else:
                accuracy = str("%.2f" % ((correctCount/total) * 100))+ "%"
            label = label + "(" + accuracy + ")"
+           print(label + ", " + accuracy)
 
        if node.is_root:
            tree.insert('', 'end', node.name, text = label)
